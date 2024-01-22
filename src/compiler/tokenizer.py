@@ -1,6 +1,7 @@
-from typing import List, Literal
+from typing import List, Literal, Tuple
 import re
 from dataclasses import dataclass
+
 
 TokenType = Literal["int_literal", "identifier", "parenthesis", "end"]
 
@@ -11,55 +12,54 @@ class Token:
     text: str
 
 
+def regex_check(expression: re.Pattern, source_code: str, position: int, result: List[Token], tokenType: TokenType) -> Tuple[int, List[Token], bool]:
+    match = expression.match(source_code, position)
+    success = False
+    if match is not None:
+        result.append(Token(
+            type=tokenType,
+            text=source_code[position:match.end()]
+        ))
+        success = True
+        position = match.end()
+
+    return position, result, success
+
+
 def tokenize(source_code: str) -> List[Token]:
     whitespace_re = re.compile(r'\s+')
-    integer_re = re.compile(r'-?[0-9]+')
+    integer_re = re.compile(r'[0-9]+')
     identifier_re = re.compile(r'[a-zA-Z_][a-zA-Z0-9_]*')
-    operator_re = re.compile(r'[+-]')
+    operator_re = re.compile(r'[\\+-\\*]')
     paren_re = re.compile(r'[()]')
 
     result: list[Token] = []
     position = 0
     while position < len(source_code):
+
         match = whitespace_re.match(source_code, position)
         if match is not None:
             position = match.end()
             continue
 
-        match = identifier_re.match(source_code, position)
-        if match is not None:
-            result.append(Token(
-                type='identifier',
-                text=source_code[position:match.end()]
-            ))
-            position = match.end()
+        position, result, success = regex_check(
+            identifier_re, source_code, position, result, "identifier")
+        if success:
             continue
 
-        match = integer_re.match(source_code, position)
-        if match is not None:
-            result.append(Token(
-                type='int_literal',
-                text=source_code[position:match.end()]
-            ))
-            position = match.end()
+        position, result, success = regex_check(
+            integer_re, source_code, position, result, "int_literal")
+        if success:
             continue
 
-        match = operator_re.match(source_code, position)
-        if match is not None:
-            result.append(Token(
-                type='identifier',
-                text=source_code[position:match.end()]
-            ))
-            position = match.end()
+        position, result, success = regex_check(
+            operator_re, source_code, position, result, "identifier")
+        if success:
             continue
 
-        match = paren_re.match(source_code, position)
-        if match is not None:
-            result.append(Token(
-                type='parenthesis',
-                text=source_code[position:match.end()]
-            ))
-            position = match.end()
+        position, result, success = regex_check(
+            paren_re, source_code, position, result, "parenthesis")
+        if success:
             continue
 
         raise Exception(

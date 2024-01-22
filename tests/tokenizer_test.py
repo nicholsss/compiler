@@ -15,3 +15,27 @@ def test_tokenizer() -> None:
         Token(type='identifier', text='+'),
         Token(type='int_literal', text='5')
     ]
+    assert tokenize("3 + -5") == [
+        Token(type='int_literal', text='3'),
+        Token(type='identifier', text='+'),
+        Token(type='identifier', text='-'),
+        Token(type='int_literal', text='5')
+    ]
+
+    assert tokenize("3 - 5") == [
+        Token(type='int_literal', text='3'),
+        Token(type='identifier', text='-'),
+        Token(type='int_literal', text='5')
+    ]
+
+    assert tokenize("3 + -(5 * -1)") == [
+        Token(type='int_literal', text='3'),
+        Token(type='identifier', text='+'),
+        Token(type='identifier', text='-'),
+        Token(type='parenthesis', text='('),
+        Token(type='int_literal', text='5'),
+        Token(type='identifier', text='*'),
+        Token(type='identifier', text='-'),
+        Token(type='int_literal', text='1'),
+        Token(type='parenthesis', text=')'),
+    ]
