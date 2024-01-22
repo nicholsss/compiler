@@ -14,27 +14,28 @@ class Token:
 
 def regex_check(expression: re.Pattern, source_code: str, position: int, result: List[Token], tokenType: TokenType) -> Tuple[int, List[Token], bool]:
     match = expression.match(source_code, position)
-    success = False
-    if match is not None:
-        result.append(Token(
-            type=tokenType,
-            text=source_code[position:match.end()]
-        ))
-        success = True
-        position = match.end()
+    if match is None:
+        return position, result, False
+    result.append(Token(
+        type=tokenType,
+        text=source_code[position:match.end()]
+    ))
+    position = match.end()
 
-    return position, result, success
+    return position, result, True
 
 
 def tokenize(source_code: str) -> List[Token]:
     whitespace_re = re.compile(r'\s+')
-    integer_re = re.compile(r'[0-9]+')
-    identifier_re = re.compile(r'[a-zA-Z_][a-zA-Z0-9_]*')
-    operator_re = re.compile(r'[\\+-\\*]')
-    paren_re = re.compile(r'[()]')
-
     result: list[Token] = []
     position = 0
+
+    expressions: List[Tuple[re.Pattern, TokenType]] = [
+        (re.compile(r'[0-9]+'), "int_literal"),
+        (re.compile(r'[a-zA-Z_][a-zA-Z0-9_]*'), "identifier"),
+        (re.compile(r'[\\+-\\*]'), "identifier"),
+        (re.compile(r'[()]'), "parenthesis")
+    ]
     while position < len(source_code):
 
         match = whitespace_re.match(source_code, position)
@@ -42,27 +43,13 @@ def tokenize(source_code: str) -> List[Token]:
             position = match.end()
             continue
 
-        position, result, success = regex_check(
-            identifier_re, source_code, position, result, "identifier")
-        if success:
-            continue
-
-        position, result, success = regex_check(
-            integer_re, source_code, position, result, "int_literal")
-        if success:
-            continue
-
-        position, result, success = regex_check(
-            operator_re, source_code, position, result, "identifier")
-        if success:
-            continue
-
-        position, result, success = regex_check(
-            paren_re, source_code, position, result, "parenthesis")
-        if success:
-            continue
-
-        raise Exception(
-            f'Tokenization failed near{source_code[position:(position + 10)]}...')
-        # TODO Refactor these to cleaner.
+        success = False
+        for (expression, type) in expressions:
+            position, result, success = regex_check(
+                expression, source_code, position, result, type)
+            if success:
+                break
+        else:
+            raise Exception(
+                f'Tokenization failed near{source_code[position:(position + 10)]}...')
     return result
