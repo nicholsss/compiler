@@ -3,7 +3,7 @@ import re
 from dataclasses import dataclass
 
 
-TokenType = Literal["int_literal", "identifier", "parenthesis", "end"]
+TokenType = Literal["int_literal", "identifier", "parenthesis", "end", ]
 
 
 @dataclass(frozen=True)
