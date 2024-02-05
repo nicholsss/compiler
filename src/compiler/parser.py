@@ -3,7 +3,6 @@ import compiler.ast as ast
 
 
 class ParseError(Exception):
-
     pass
 
 
@@ -43,11 +42,19 @@ def parse(tokens: list[Token]) -> ast.Expression:
         token = consume()
         return ast.Identifier(token.text)
 
+    def parse_parenthesized() -> ast.Expression:
+        consume('(')
+        expr = parse_expression()
+        consume(')')
+        return expr
+
     def parse_term() -> ast.Expression:
         if peek().type == 'int_literal':
             return parse_int_literal()
         elif peek().type == 'identifier':
             return parse_identifier()
+        elif peek().text == '(':
+            return parse_parenthesized()
         else:
             raise ParseError(
                 f'{peek().type}: expected an integer literal or an identifier')
@@ -62,8 +69,9 @@ def parse(tokens: list[Token]) -> ast.Expression:
                 operator_token.text,
                 right
             )
-        if peek().type != 'end':
-            raise ParseError(f'{peek().type}: expected an end')
         return left
 
-    return parse_expression()
+    result = parse_expression()
+    if peek().type != 'end':
+        raise ParseError(f'{peek().type}: expected an end')
+    return result

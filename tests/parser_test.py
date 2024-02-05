@@ -1,6 +1,6 @@
 from compiler.ast import BinaryOp, Expression,  Literal,  Identifier
 from compiler.parser import ParseError, parse
-from compiler.tokenizer import Token
+from compiler.tokenizer import Token, tokenize
 
 
 def test_ast() -> None:
@@ -51,12 +51,23 @@ def test_ast() -> None:
         right=Identifier("z")
     )
 
+    assert parse(tokenize('1 - (2 + 3)')) == BinaryOp(
+        left=Literal(value=1),
+        op="-",
+        right=BinaryOp(left=Literal(value=2), op='+', right=Literal(3))
+    )
+
     try:
         parse([
             Token(type='int_literal', text='2'),
-
             Token(type='identifier', text='x'),
         ])
+        assert False
+    except ParseError:
+        pass
+
+    try:
+        parse(tokenize('2)'))
         assert False
     except ParseError:
         pass
