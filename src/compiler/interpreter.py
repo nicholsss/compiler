@@ -8,6 +8,11 @@ class IntepretError(Exception):
     pass
 
 
+class SymTab:
+    locals: dict[str, int]
+    parent: Any
+
+
 def interpret(node: ast.Expression) -> Value:
     match node:
         case ast.Literal():
