@@ -22,3 +22,9 @@ class BinaryOp(Expression):
     left: Expression
     op: str
     right: Expression
+
+
+@dataclass
+class UnaryOp(Expression):
+    op: str
+    operand: Expression
